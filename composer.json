@@ -1,0 +1,33 @@
+{
+    "name": "mindfulindustries/php-convertkit-integration",
+    "description": "PHP ConvertKit Integration.",
+    "type": "library",
+    "license": "proprietary",
+    "version": "1.0",
+    "authors": [
+        {
+            "name": "Jan Kremlacek",
+            "email": "jan.kremlacek@mindfulindustries.com"
+        }
+    ],
+    "require": {
+        "php": ">=7",
+        "illuminate/support": "^5.5",
+        "mindfulindustries/php-http-transport": "^2.0"
+    },
+    "require-dev": {
+        "codedungeon/phpunit-result-printer": "*",
+        "phpunit/phpunit": "^7.0",
+        "fzaninotto/faker": "^1.8"
+    },
+    "autoload": {
+        "psr-4": {
+            "MindfulIndustries\\Integrations\\ConvertKit\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    }
+}
