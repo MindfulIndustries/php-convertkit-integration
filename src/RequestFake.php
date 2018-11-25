@@ -35,6 +35,63 @@ class RequestFake extends AbstractRequest implements RequestContract
     }
 
 
+    /** @inheritdoc */
+    public function unsubscribe(string $email) : bool
+    {
+        return $this->faker->boolean;
+    }
+
+
+    /** @inheritdoc */
+    public function tag(string $email, $tag) : bool
+    {
+        return $this->faker->boolean;
+    }
+
+
+    /** @inheritdoc */
+    public function untag(string $email, $tag) : bool
+    {
+        return $this->faker->boolean;
+    }
+
+
+    /** @inheritdoc */
+    public function getTagId(string $tag, bool $createIfDoesNotExist = false) : ?int
+    {
+        return $createIfDoesNotExist
+            ? $this->faker->randomDigit
+            : $this->faker->boolean;
+    }
+
+
+    /** @inheritdoc */
+    public function getTags() : array
+    {
+        $amount = $this->faker->randomBetween(0, 7);
+        $response = [];
+
+        for ($i = 0; $i < $amount; $i++) {
+            $response[] = [
+                'id' => $this->faker->unique()->randomDigit(),
+                'name' => $this->faker->unique()->catchPhrase,
+                'created_at' => $this->faker->datetime->format(DATE_RFC850)
+            ];
+        }
+
+        return $reponse;
+    }
+
+
+    /** @inheritdoc */
+    public function createTag(string $tag) : ?int
+    {
+        return $this->faker->boolean
+            ? $this->faker->randomDigit
+            : null;
+    }
+
+
 
     public function __call(string $method, $arguments)
     {

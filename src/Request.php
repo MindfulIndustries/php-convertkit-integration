@@ -13,7 +13,7 @@ class Request extends AbstractRequest implements RequestContract
     public function subscriberId(string $email) : ?int
     {
         return $this->withResponse(
-            static::get('/subscribers', ['email_address' => strtolower($email)]),
+            $this->get('/subscribers', ['email_address' => strtolower($email)]),
             function ($payload) {
                 return $this->arrayGet($payload, 'total_subscribers') == 1
                     ? $this->arrayGet($payload, 'subscribers.0.id')
@@ -26,10 +26,104 @@ class Request extends AbstractRequest implements RequestContract
     /** @inheritdoc */
     public function subscribe(string $email, int $formId, array $options = []) : bool
     {
-        return static::post(
+        return $this->post(
             sprintf('/forms/%d/subscribe', $formId),
             array_merge($options, ['email' => strtolower($email)])
         )->isOk();
+    }
+
+
+    /** @inheritdoc */
+    public function unsubscribe(string $email) : bool
+    {
+        return $this->put(
+            '/unsubscribe',
+            ['email' => strtolower($email)]
+        )->isOk();
+    }
+
+
+    /** @inheritdoc */
+    public function tag(string $email, $tag) : bool
+    {
+        if (is_string($tag)) {
+            if (is_null($tag = $this->getTagId($tag, true))) {
+                return false;
+            }
+        }
+
+        if (!is_int($tag)) {
+            throw new InvalidArgumentException;
+        }
+
+        return static::post(
+            sprintf('/tags/%d/subscribe', $tag),
+            ['email' => strtolower($email)]
+        )->isOk();
+    }
+
+
+    /** @inheritdoc */
+    public function untag(string $email, $tag) : bool
+    {
+        if (is_string($tag)) {
+            if (is_null($tag = $this->getTagId($tag, false))) {
+                return true;
+            }
+        }
+
+        if (!is_int($tag))  {
+            throw new InvalidArgumentException;
+        }
+
+        return $this->post(
+            sprintf('/tags/%d/unsubscribe', $tag),
+            ['email' => strtolower($email)]
+        )->isOk();
+    }
+
+
+    /** @inheritdoc */
+    public function getTagId(string $tag, bool $createIfDoesNotExist = false) : ?int
+    {
+        $foundTags = array_filter($this->getTags(), function ($retrievedTag) use ($tag) {
+            return $this->arrayGet($retrievedTag, 'name') == $tag;
+        });
+
+        if (count($foundTags) > 0 || $createIfDoesNotExist == false) {
+            return $this->arrayGet(reset($foundTags), 'id');
+        }
+
+        return $this->withResponse(
+            $this->post('/tags', ['tag' => ['name' => $tag]]),
+            function ($payload) {
+                return $this->arrayGet($payload, 'id');
+            }
+        );
+    }
+
+
+    /** @inheritdoc */
+    public function getTags() : array
+    {
+        return $this->withResponse(
+            $this->get('/tags'),
+            function ($payload) {
+                return $this->arrayGet($payload, 'tags');
+            },
+            []
+        );
+    }
+
+
+    /**
+     * Create Tag at ConvertKit and return its Id.
+     * @param  string $tag
+     * @return int|null
+     */
+    public function createTag(string $tag) : ?int
+    {
+        return $this->getTagId($tag, true);
     }
 
 
@@ -70,13 +164,15 @@ class Request extends AbstractRequest implements RequestContract
      * Evaluate and return given Callback when given Response is Ok, otherwise null.
      * Response Json is passed to given Callback as Payload argument.
      * @param  \MindfulIndustries\Support\Transport\Response $response
+     * @param  callable $callback
+     * @param  mixed $default
      * @return mixed
      */
-    protected function withResponse(?Response $response, $callback)
+    protected function withResponse(Response $response, $callback, $default = null)
     {
         return $response->isOk()
             ? $callback($response->json())
-            : null;
+            : $default;
     }
 
 
@@ -92,14 +188,15 @@ class Request extends AbstractRequest implements RequestContract
         }
 
         try {
-
             return Http::{$method}(
                 sprintf('https://api.convertkit.com/v3%s', $path),
-                array_merge($payload, [static::$credentials])
+                array_merge($payload, $this->credentials)
             );
         } catch (ConnectionException $e) {
+            var_dump($e);
             return new Response(new \GuzzleHttp\Psr7\Response(408));
         } catch (Exception $e) {
+            var_dump($e);
             return new Response(new \GuzzleHttp\Psr7\Response(422));
         }
     }

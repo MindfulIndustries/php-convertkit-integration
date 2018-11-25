@@ -9,7 +9,9 @@ abstract class AbstractRequest
 
 
     /**
-     * @see \MindfulIndustries\Integrations\ConvertKit\RequestContract
+     * @param  array $creadentials
+     * @see    \MindfulIndustries\Integrations\ConvertKit\ConvertKit::credentials()
+     * @return static
      */
     public function __construct($credentials)
     {
@@ -17,21 +19,21 @@ abstract class AbstractRequest
     }
 
 
-    protected static function get(string $path, array $payload = [])
+    protected function get(string $path, array $payload = [])
     {
-        return static::convertKitRequest('get', $path, $payload);
+        return $this->convertKitRequest('get', $path, $payload);
     }
 
 
-    protected static function post(string $path, array $payload = [])
+    protected function post(string $path, array $payload = [])
     {
-        return static::convertKitRequest('post', $path, $payload);
+        return $this->convertKitRequest('post', $path, $payload);
     }
 
 
-    protected static function delete(string $path, array $payload = [])
+    protected function delete(string $path, array $payload = [])
     {
-        return static::convertKitRequest('delete', $path, $payload);
+        return $this->convertKitRequest('delete', $path, $payload);
     }
 
 

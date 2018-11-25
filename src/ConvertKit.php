@@ -6,8 +6,8 @@ use InvalidArgumentException;
 
 class ConvertKit
 {
-    /** @var Callable */
-    protected static $credentials = [];
+    /** @var array */
+    protected static $credentialsPayload = [];
 
 
     /** @var \MindfulIndustries\Integrations\ConvertKit\Request */
@@ -16,31 +16,30 @@ class ConvertKit
 
     /**
      * Setup ConvertKit Credentials
-     * @param  array|callable $callback
+     * @param  string $key
+     * @param  string $secret
      * @return void
-     * @throws \InvalidArgumentException
      */
-    public static function credentials($callback)
+    public static function credentials(string $key, string $secret)
     {
-        if (is_array($credentials)) {
-            static::$credentials = $callback;
-        } elseif (is_callable($callback)) {
-            static::$credentials = $callback();
-        } else {
-            throw new InvalidArgumentException;
-        }
+        static::$credentialsPayload = [
+            'api_key' => $key,
+            'api_secret' => $secret
+        ];
     }
 
 
     /**
-     * Enable fake calls.
+     * Enable (or disable) fake calls.
+     * @param  bool $on
      * @return void;
      */
-    public static function fake()
+    public static function fake(bool $on = true)
     {
-        static::$request = new RequestFake(static::$credentials);
+        static::$request = $on
+            ? new RequestFake(static::$credentialsPayload)
+            : null;
     }
-
 
 
     /**
@@ -52,7 +51,7 @@ class ConvertKit
     public static function __callStatic(string $method, $arguments)
     {
         if (is_null(static::$request)) {
-            static::$request = new Request(static::$credentials);
+            static::$request = new Request(static::$credentialsPayload);
         }
 
         return static::$request->{$method}(...$arguments);
