@@ -7,11 +7,41 @@ use InvalidArgumentException;
 class ConvertKit
 {
     /** @var Callable */
-    protected static $credentials;
+    protected static $credentials = [];
 
 
     /** @var \MindfulIndustries\Integrations\ConvertKit\Request */
     protected static $request = null;
+
+
+    /**
+     * Setup ConvertKit Credentials
+     * @param  array|callable $callback
+     * @return void
+     * @throws \InvalidArgumentException
+     */
+    public static function credentials($callback)
+    {
+        if (is_array($credentials)) {
+            static::$credentials = $callback;
+        } elseif (is_callable($callback)) {
+            static::$credentials = $callback();
+        } else {
+            throw new InvalidArgumentException;
+        }
+    }
+
+
+    /**
+     * Enable fake calls.
+     * @return void;
+     */
+    public static function fake()
+    {
+        static::$request = new RequestFake(static::$credentials);
+    }
+
+
 
     /**
      * Statically construct the Request object.
@@ -21,18 +51,6 @@ class ConvertKit
      */
     public static function __callStatic(string $method, $arguments)
     {
-        if ($method == 'credentials') {
-            if (count($arguments) != 1 || !is_callable($arguments[0])) {
-                throw new InvalidArgumentException;
-            } else {
-                static::$credentials = $arguments[0]();
-                return;
-            }
-        } elseif ($method == 'fake') {
-            static::$request = new RequestFake(static::$credentials);
-            return;
-        }
-
         if (is_null(static::$request)) {
             static::$request = new Request(static::$credentials);
         }

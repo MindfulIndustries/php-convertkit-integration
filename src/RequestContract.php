@@ -20,6 +20,16 @@ interface RequestContract
     public function subscriberId(string $email) : ?int;
 
 
+    /**
+     * Subscribe to Form.
+     * @param  string $email
+     * @param  int $formId (ConvertKit Form Id)
+     * @param  array $options
+     * @return bool
+     */
+    public function subscribe(string $email, int $formId, array $options = []) : bool;
+
+
 
 
 }

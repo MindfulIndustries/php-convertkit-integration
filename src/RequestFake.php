@@ -28,6 +28,13 @@ class RequestFake extends AbstractRequest implements RequestContract
     }
 
 
+    /** @inheritdoc */
+    public function subscribe(string $email, int $formId, array $options = []) : bool
+    {
+        return $this->faker->boolean;
+    }
+
+
 
     public function __call(string $method, $arguments)
     {
